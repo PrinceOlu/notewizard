@@ -1,39 +1,40 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
-import NoteModel from "./models/notes";
+import noteRoutes from "./routes/notesRoutes";
+import morgan from "morgan";
+import createHttpError from "http-errors";
 
 const app = express();
 
-app.get("/", async (req: Request, res: Response) => {
-  try {
-    // Fetch data from the database
-    const notes = await NoteModel.find().exec();
-    res.status(200).json(notes);
-  } catch (error) {
-    console.error("An error occurred:", error);
+// Add morgan middleware to log requests
+app.use(morgan("dev"));
 
-    // Respond with an appropriate message and status code
-    const errorMessage =
-      error instanceof Error ? error.message : "An unexpected error occurred";
-    res.status(500).json({ error: errorMessage });
-  }
-});
+// Middleware to parse JSON requests
+app.use(express.json());
 
-// Middleware to handle undefined routes
+// Define API routes
+app.use("/api/notes", noteRoutes);
+
+// Handle undefined routes
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.status(404).json({ error: "Route not found" });
+  next(createHttpError(404, "Route not found")); // Use `createHttpError` correctly
 });
 
 // Global error-handling middleware
-app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
-  console.error("Unhandled error:", error);
+app.use(
+  (error: unknown, req: Request, res: Response) => {
+    console.error("Unhandled error:", error);
 
-  // Set a generic error message
-  const errorMessage =
-    error instanceof Error ? error.message : "An unexpected error occurred";
+    // Determine the HTTP status code
+    const status = error instanceof createHttpError.HttpError ? error.status : 500;
 
-  // Respond with a 500 status code and error message
-  res.status(500).json({ error: errorMessage });
-});
+    // Determine the error message
+    const message =
+      error instanceof createHttpError.HttpError ? error.message : "An unexpected error occurred";
+
+    // Respond with the error message and status
+    res.status(status).json({ error: message });
+  }
+);
 
 export default app;
