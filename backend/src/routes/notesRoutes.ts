@@ -8,5 +8,7 @@ const router = express.Router();
 router.get("/", noteController.getNotes); // Fetch all notes
 router.get("/:noteId", noteController.getSingleNotes); // Fetch single notes
 router.post("/", noteController.createNotes); // Create a new note
+router.put("/:noteId", noteController.updateNotes); // update a note
+router.delete("/:noteId", noteController.deleteNotes); // delete a note
 
 export default router;
