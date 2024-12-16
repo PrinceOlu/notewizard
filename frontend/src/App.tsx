@@ -1,35 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
+import { Note as NoteModel } from './models/note';
+import Note from './components/Note'; // Ensure this path is correct
+import AddModal from './components/AddModal';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [notes, setNotes] = useState<NoteModel[]>([]); // Updated state name
+  const [error, setError] = useState<string | null>(null); // State for error handling
+
+  // Fetch data from the database
+  useEffect(() => {
+    async function loadNotes() {
+      try {
+        const response = await fetch("http://localhost:5000/api/notes", {
+          method: "GET",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        const contentType = response.headers.get("Content-Type") || "";
+        if (!contentType.includes("application/json")) {
+          throw new Error("Expected JSON response but received non-JSON data");
+        }
+        const notes = await response.json();
+        setNotes(notes);
+      } catch (error: unknown) {
+        // Handle error gracefully
+        if (error instanceof Error) {
+          setError(`Failed to load notes: ${error.message}`);
+        } else {
+          setError("An unexpected error occurred.");
+        }
+      }
+    }
+
+    loadNotes();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h2>Notes <AddModal /></h2>
+      {error && <p className="error">{error}</p>}
+      <ul>
+        {notes.map((note) => (
+          <li key={note._id}>
+            <Note note={note} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;

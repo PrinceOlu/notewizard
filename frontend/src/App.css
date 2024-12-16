@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+ul {
+  list-style-type: none; /* Removes bullets */
+  margin: 0; /* Optional: Removes default margin */
+  padding: 0; /* Optional: Removes default padding */
+}

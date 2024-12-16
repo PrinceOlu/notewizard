@@ -1,6 +1,12 @@
 import app from "../src/app";
 import mongoose from "mongoose";
 const port = process.env.PORT || 5000;
+import cors from "cors";
+
+
+
+// Apply CORS middleware before route definitions
+app.use(cors());
 
 // Ensure MONGO_URI is defined
 const mongoUri = process.env.MONGO_URI;
