@@ -1,20 +1,24 @@
 import { Card, Button } from 'react-bootstrap';
-import { Note as NoteModel } from '../models/note';
+import type { Note as NoteModel } from '../models/note'; // Type-only import
+import { FaEdit, FaTrash } from 'react-icons/fa';
 
 interface NoteProps {
   note: NoteModel;
+  onDeleteNoteClicked: (note: NoteModel) => void;
+  onEditNoteClicked?: (note: NoteModel) => void;
 }
 
-function Note({ note }: NoteProps) {
+const Note: React.FC<NoteProps> = ({ note, onDeleteNoteClicked, onEditNoteClicked }) => {
   const { title, text, createdAt, updatedAt } = note;
 
-  // Helper function to format date
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+  // Format date helper
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+  // Delete handler
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onDeleteNoteClicked(note);
+    e.stopPropagation(); // Prevent event bubbling to parent elements
   };
 
   return (
@@ -28,10 +32,12 @@ function Note({ note }: NoteProps) {
       }}
     >
       <Card.Header style={{ backgroundColor: '#007BFF', color: '#fff' }}>
-        <h5 style={{ margin: 0 }}>{title}</h5>
+        <h5 style={{ margin: 0 }}>{title || 'Untitled Note'}</h5>
       </Card.Header>
       <Card.Body>
-        <Card.Text style={{ fontSize: '0.9rem', color: '#555' }}>{text}</Card.Text>
+        <Card.Text style={{ fontSize: '0.9rem', color: '#555' }}>
+          {text || 'No content available'}
+        </Card.Text>
         <hr />
         <Card.Text>
           <small>
@@ -45,15 +51,21 @@ function Note({ note }: NoteProps) {
         </Card.Text>
       </Card.Body>
       <Card.Footer style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Button variant="primary" size="sm">
-          Edit
+        {/* Edit button with optional callback */}
+        <Button
+          variant="warning"
+          onClick={() => onEditNoteClicked && onEditNoteClicked(note)}
+          title="Edit this note"
+        >
+          <FaEdit /> Edit
         </Button>
-        <Button variant="danger" size="sm">
-          Delete
+        {/* Delete button */}
+        <Button variant="danger" onClick={handleDelete} title="Delete this note">
+          <FaTrash /> Delete
         </Button>
       </Card.Footer>
     </Card>
   );
-}
+};
 
 export default Note;
